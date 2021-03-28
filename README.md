@@ -1,4 +1,9 @@
-# Laboratorium II 17-03-2021
-Kopia popularnej gry Flappy Bird
-## Opis
-Gra napisana w Javie przy użyciu biblioteki graficznej Swing. Zasady są proste. Gracz(kwadrat) musi przelecieć przez przerwy w kolumnach. Przerwy są generowane losowo co podnosi poziom trudności. Jeżeli gracz trafi w kolumnę,  podleci zbyt wysoko lub dotknie ziemi - przegrywa (detekcja kolizji). 
+# Laboratorium III 17-03-2021
+Inicjały rysowane za pomocą własnej implementacji krzywych Béziera
+## Jak włączyć
+```bash
+pip3 install Pillow
+py bezier.py
+```
+## Usprawnienia
+Oprócz inicjałów, dodano kratkę generowaną pętlą oraz liść
