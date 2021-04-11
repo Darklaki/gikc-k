@@ -1,8 +1,6 @@
 import math
 import os
 
-#http://paulbourke.net/geometry/bezier/
-
 POINTS_FILENAME = os.path.dirname(os.path.abspath(__file__)) + "\\" + "points.txt"
 OUT_POINTS_FILENAME = os.path.dirname(os.path.abspath(__file__)) + "\\" + "out_points.txt"
 MATRIX_R = MATRIX_C = 4
