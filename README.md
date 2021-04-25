@@ -1,7 +1,12 @@
-# Laboratorium V 31-03-2021
-Transformacja obrazów wraz z GUI
+# Laboratorium VI 25-04-2021
+Zmiana kontrastu zdjęcia oraz generowanie histogramu.
+
+## Jak uruchomić
+1. Uruchomić ```lab6_intensywnosc_histogram/bin/debug/lab6_intensywnosc_histogram.exe```
+2. Lub załadować projekt w Visual Studio
 
 ## Informacje
-1. Transformacje dokonują się po wybraniu dwóch obrazów.
-2. Transformacja liniowa oraz potęgowa działa na zdjęcie 1
-3. Im dalszy tryb tym ma większy priorytet. Tryby mieszania nie łączą się ze sobą. Najlepiej klikać "reset", jeżeli chcemy dokonać jakiejś zmiany
+Aby wybrać zdjęcie do edycji, należy kliknąć w pierwszy kwadrat. Pierwszy histogram wygeneruje się po wybraniu zdjęcia. Drugi po dokonaniu edycji.
+
+## Zdjęcie
+![1](assets/1.png)
