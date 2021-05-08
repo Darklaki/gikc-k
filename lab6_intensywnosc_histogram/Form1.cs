@@ -24,6 +24,23 @@ namespace lab6_intensywnosc_histogram
         private bool isInByteRange(int val) {
             return val <= 255 && val >= 0;
         }
+
+        private int normalizeIntToByte(int x)
+        {
+            if (this.isInByteRange(x)) {
+                return x;
+            }
+            else
+            {
+                if (x > 255) {
+                    return 255;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        }
         
 
         private void wybierzZdjeciePrzed(object sender, EventArgs e)
@@ -34,45 +51,52 @@ namespace lab6_intensywnosc_histogram
             if (open.ShowDialog() == DialogResult.OK)
             {
                 // display image in picture box  
-                this.zdjeciePrzed.LoadAsync( open.FileName);
+                this.zdjeciePrzed.LoadAsync(open.FileName);
                 this.zdjeciePrzed.SizeMode = PictureBoxSizeMode.Zoom;
             }
 
         }
         private void zmianaZdjeciaPrzed(object sender, AsyncCompletedEventArgs e) {
 
-            //this.narysujHistogram(this.zdjeciePrzed.Image, this.chart1);
             this.zdjeciePrzedHistogram = new Histogram(this.zdjeciePrzed.Image);
             this.zdjeciePrzedHistogram.drawOnChart(this.chart1);
 
         }
 
-        private void trackZmianyA(object sender, EventArgs e)
-        {
+        private int quickSortPartition(int[] arr, int leftIndex, int rightIndex) {
 
-            this.label1.Text = "A: " + this.trackBarSkalowanieA.Value;
+            int pivot = arr[rightIndex];
+            int pointer = leftIndex;
 
+            for (int i = leftIndex; i <= rightIndex - 1; i++)
+            {
+                if (arr[i] < pivot)
+                {
+                    int el = arr[i];
+                    arr[i] = arr[pointer];
+                    arr[pointer] = el;
+                    pointer += 1;
+                }
+
+            }
+
+            int finalPointerVal = arr[pointer];
+            arr[pointer] = arr[rightIndex];
+            arr[rightIndex] = finalPointerVal;
+
+            return pointer;
         }
 
-        private void trackZmianyB(object sender, EventArgs e)
+        private void quickSort(int[] arr, int leftIndex, int rightIndex)
         {
+            if ( leftIndex < rightIndex ) {
 
-            this.label2.Text = "B: " + this.trackBarSkalowanieB.Value;
+                int pivot = this.quickSortPartition(arr, leftIndex, rightIndex);
 
-        }
+                this.quickSort(arr, leftIndex, pivot - 1);
+                this.quickSort(arr, pivot + 1, rightIndex);
 
-        private void trackZmianyC(object sender, EventArgs e)
-        {
-
-            this.label3.Text = "C: " + this.trackBarSkalowanieC.Value;
-
-        }
-
-        private void trackZmianyD(object sender, EventArgs e)
-        {
-
-            this.label4.Text = "D: " + this.trackBarSkalowanieD.Value;
-
+            }
         }
 
         /**
@@ -115,75 +139,289 @@ namespace lab6_intensywnosc_histogram
 
         }
 
-        private byte[] obliczSkalowanie( Bitmap img, int x , int y ) {
+        /*
+         *
+         * Delegat do metod wstrzykujących maski.
+         * Wstrzykiwanie, czyli modyfikacja maski odbywa się przez modyfikację parametrów przez odwołanie.
+         */
+        private delegate void  MaskLoader(ref int mask_size, ref int[,] mask_weights);
 
-            Color pixel = img.GetPixel(x, y);
-
-            byte red = pixel.R;
-            byte green = pixel.G;
-            byte blue = pixel.B;
-
-            int a = this.trackBarSkalowanieA.Value;
-            int b = this.trackBarSkalowanieB.Value;
-            int c = this.trackBarSkalowanieC.Value;
-            int d = this.trackBarSkalowanieD.Value;
-
-            byte[] rgb_result = new byte[3] { red, green, blue };
-
-            if (b - a != 0)
+        /**
+         *
+         * Zwraca metodę, która stosuje maskę dla piksela w przekazanym zdjęciu. 
+         * Rodzaj maski jest wstrzykiwany przez parametr @maskCallback
+         * @maskCallback ustala rozmiar maski oraz wagi maski
+         */
+        private Func<Bitmap, int, int, byte[]>  maskaFiltrujacaFactory( MaskLoader maskCallback ) {
+            return (Bitmap img, int x, int y) =>
             {
-                if (this.isInByteRange((red - a) * ((d - c) / (b - a)) + c))
+                // intialize with dummy values
+                int mask_size_n = 0;
+                int[,] filter_weights = new int[1, 1];
+
+                // assign mask
+                maskCallback(ref mask_size_n, ref filter_weights);
+
+                int k = (mask_size_n - 1) / 2;
+
+                Color pixel = img.GetPixel(x, y);
+
+                int red = 0;
+                int green = 0;
+                int blue = 0;
+                int weights_sum = 0;
+
+                for (int i = -k; i <= k; i++)
                 {
-                    rgb_result[0] = Convert.ToByte((red - a) * ((d - c) / (b - a)) + c);
+                    for (int j = -k; j <= k; j++)
+                    {
+                        int this_x = x + i;
+                        int this_y = y + j;
+
+                        if (this_x >= 0 && this_x < img.Width && this_y >= 0 && this_y < img.Height)
+                        {
+                            Color this_pixel = img.GetPixel(this_x, this_y);
+
+                            int weight = filter_weights[i + k, j + k];
+                            weights_sum += weight;
+
+                            red += weight * this_pixel.R;
+                            green += weight * this_pixel.G;
+                            blue += weight * this_pixel.B;
+                        }
+
+                    }
                 }
-                if (this.isInByteRange((green - a) * ((d - c) / (b - a)) + c))
+
+                if (weights_sum != 0)
                 {
-                    rgb_result[1] = Convert.ToByte((green - a) * ((d - c) / (b - a)) + c);
+                    red = red / weights_sum;
+                    green = green / weights_sum;
+                    blue = blue / weights_sum;
                 }
-                if (this.isInByteRange((blue - a) * ((d - c) / (b - a)) + c))
-                {
-                    rgb_result[2] = Convert.ToByte((blue - a) * ((d - c) / (b - a)) + c);
-                }
-            }
-            return rgb_result;
+
+
+                byte[] rgb_result = new byte[3] { Convert.ToByte(this.normalizeIntToByte(red)), Convert.ToByte(this.normalizeIntToByte(green)), Convert.ToByte(this.normalizeIntToByte(blue)) };
+
+                return rgb_result;
+            };
         }
 
-        private void obliczSkalowanieAction(object sender, EventArgs e)
+        private void sharpenMasks(ref int mask_size_n, ref int[,] filter_weights)
+       {
+            if (this.robertsHorizontal.Checked)
+            {
+                mask_size_n = 3;
+                filter_weights = new int[,] {
+                    { 0, 0, 0 },
+                    { 0, 1, 0 },
+                    { 0, -1, 0 }
+                };
+            }
+            if (this.robertsVertical.Checked)
+            {
+                mask_size_n = 3;
+                filter_weights = new int[,] {
+                    { 0, 0, 0 },
+                    { 0, 1, -1 },
+                    { 0, 0, 0 }
+                };
+            }
+            if (this.prewittHorizontal.Checked)
+            {
+                mask_size_n = 3;
+                filter_weights = new int[,] {
+                    { 1, 0, -1 },
+                    { 1, 0, -1 },
+                    { 1, 0, -1 }
+                };
+            }
+            if (this.prewittVertical.Checked)
+            {
+                mask_size_n = 3;
+                filter_weights = new int[,] {
+                    { 1, 1, 1 },
+                    { 0, 0, 0 },
+                    { -1, -1, -1 }
+                };
+            }
+            if (this.sobelHorizontal.Checked)
+            {
+                mask_size_n = 3;
+                filter_weights = new int[,] {
+                    { 1, 0, -1 },
+                    { 2, 0, -2 },
+                    { 1, 0, -1 }
+                };
+            }
+            if (this.sobelVertical.Checked)
+            {
+                mask_size_n = 3;
+                filter_weights = new int[,] {
+                    { 1, 2, 1 },
+                    { 0, 0, 0 },
+                    { -1, -2, -1 }
+                };
+            }
+            if (this.laplaceSharpen.Checked)
+            {
+                mask_size_n = 3;
+                filter_weights = new int[,] {
+                    { -2, 1, -2 },
+                    { 1, 4, 1 },
+                    { -2, 1, -2 }
+                };
+            }
+       }
+
+        private void embossingMasks(ref int mask_size_n, ref int[,] filter_weights)
         {
 
-            if (this.zdjeciePrzed.Image != null)
+            if (this.eastEmbossing.Checked)
             {
-
-                Bitmap zdjeciePoModyfikacji = this.modyfikujZdjecie(this.zdjeciePrzed.Image, this.obliczSkalowanie);
-
-                this.zdjeciePo.Image = zdjeciePoModyfikacji;
-                this.zdjeciePo.SizeMode = PictureBoxSizeMode.Zoom;
-
-                this.zdjeciePoHistogram = new Histogram(this.zdjeciePo.Image);
-                this.zdjeciePoHistogram.drawOnChart(this.chart2);
-
+                mask_size_n = 3;
+                filter_weights = new int[,] {
+                    { -1, 0, 1 },
+                    { -1, 1, 1 },
+                    { -1, 0, 1 }
+                };
+            }
+            if (this.southEmbossing.Checked)
+            {
+                mask_size_n = 3;
+                filter_weights = new int[,] {
+                    { -1, -1, -1 },
+                    { 0, 1, 0 },
+                    { 1, 1, 1 }
+                };
+            }
+            if (this.westEmbossing.Checked)
+            {
+                mask_size_n = 3;
+                filter_weights = new int[,] {
+                    { 1, 0, -1 },
+                    { 1, 1, -1 },
+                    { 1, 0, -1 }
+                };
+            }
+            if (this.northEmbossing.Checked)
+            {
+                mask_size_n = 3;
+                filter_weights = new int[,] {
+                    { 1, 1, 1 },
+                    { 0, 1, 0 },
+                    { -1, -1, -1 }
+                };
             }
         }
 
-        private byte[] filtrujObraz(Bitmap img, int x, int y) {
+        /*private byte[] maskaFiltrujaca(Bitmap img, int x, int y) {
 
             // intialize with dummy values
             int mask_size_n = 0;
             int[,] filter_weights = new int[1, 1];
 
-            if( this.avgFilter.Checked)
+            // sharpen
+            if (this.robertsHorizontal.Checked)
             {
                 mask_size_n = 3;
-                filter_weights = new int[,] { {1, 1, 1}, { 1, 1, 1 }, { 1, 1, 1 } };
+                filter_weights = new int[,] {
+                    { 0, 0, 0 },
+                    { 0, 1, 0 },
+                    { 0, -1, 0 }
+                };
             }
-            if ( this.gauss1Filter.Checked ) {
-                mask_size_n = 3;
-                filter_weights = new int[,] { { 1, 2, 1 }, { 2, 4, 2 }, { 1, 2, 1 } };
-            }
-            if( this.pyramidFilter.Checked )
+            if ( this.robertsVertical.Checked )
             {
-                mask_size_n = 5;
-                filter_weights = new int[,] { { 1, 2, 3, 2, 1 }, { 2, 4, 6, 4, 2 }, { 3, 6, 9, 6, 3 }, { 2, 4, 6, 4, 2 }, { 1, 2, 3, 2, 1 } };
+                mask_size_n = 3;
+                filter_weights = new int[,] { 
+                    { 0, 0, 0 }, 
+                    { 0, 1, -1 }, 
+                    { 0, 0, 0 } 
+                };
+            }
+            if (this.prewittHorizontal.Checked)
+            {
+                mask_size_n = 3;
+                filter_weights = new int[,] {
+                    { 1, 0, -1 },
+                    { 1, 0, -1 },
+                    { 1, 0, -1 }
+                };
+            }
+            if (this.prewittVertical.Checked)
+            {
+                mask_size_n = 3;
+                filter_weights = new int[,] {
+                    { 1, 1, 1 },
+                    { 0, 0, 0 },
+                    { -1, -1, -1 }
+                };
+            }
+            if (this.sobelHorizontal.Checked)
+            {
+                mask_size_n = 3;
+                filter_weights = new int[,] {
+                    { 1, 0, -1 },
+                    { 2, 0, -2 },
+                    { 1, 0, -1 }
+                };
+            }
+            if (this.sobelVertical.Checked)
+            {
+                mask_size_n = 3;
+                filter_weights = new int[,] {
+                    { 1, 2, 1 },
+                    { 0, 0, 0 },
+                    { -1, -2, -1 }
+                };
+            }
+            if (this.laplaceSharpen.Checked)
+            {
+                mask_size_n = 3;
+                filter_weights = new int[,] {
+                    { -2, 1, -2 },
+                    { 1, 4, 1 },
+                    { -2, 1, -2 }
+                };
+            }
+
+            // embossing
+            if (this.eastEmbossing.Checked)
+            {
+                mask_size_n = 3;
+                filter_weights = new int[,] {
+                    { -1, 0, 1 },
+                    { -1, 1, 1 },
+                    { -1, 0, 1 }
+                };
+            }
+            if (this.southEmbossing.Checked)
+            {
+                mask_size_n = 3;
+                filter_weights = new int[,] {
+                    { -1, -1, -1 },
+                    { 0, 1, 0 },
+                    { 1, 1, 1 }
+                };
+            }
+            if (this.westEmbossing.Checked)
+            {
+                mask_size_n = 3;
+                filter_weights = new int[,] {
+                    { 1, 0, -1 },
+                    { 1, 1, -1 },
+                    { 1, 0, -1 }
+                };
+            }
+            if (this.northEmbossing.Checked)
+            {
+                mask_size_n = 3;
+                filter_weights = new int[,] {
+                    { 1, 1, 1 },
+                    { 0, 1, 0 },
+                    { -1, -1, -1 }
+                };
             }
 
             int k = (mask_size_n - 1) / 2;
@@ -222,24 +460,137 @@ namespace lab6_intensywnosc_histogram
                 blue = blue / weights_sum;
             }
 
-            byte[] rgb_result = new byte[3] { Convert.ToByte(red), Convert.ToByte(green), Convert.ToByte(blue) };
+
+            byte[] rgb_result = new byte[3] { Convert.ToByte(this.normalizeIntToByte(red)), Convert.ToByte(this.normalizeIntToByte(green)), Convert.ToByte(this.normalizeIntToByte(blue)) };
+
+            return rgb_result;
+
+        }*/
+
+        private byte[] filtryStatyczne(Bitmap img, int x, int y)
+        {
+
+            // intialize with dummy values
+            int mask_size_n = Decimal.ToInt32(this.staticMaskSize.Value);
+            int[,] mask_red_values = new int[mask_size_n, mask_size_n];
+            int[,] mask_green_values = new int[mask_size_n, mask_size_n];
+            int[,] mask_blue_values = new int[mask_size_n, mask_size_n];
+
+            int k = (mask_size_n - 1) / 2;
+
+            Color pixel = img.GetPixel(x, y);
+
+            int red = 0;
+            int green = 0;
+            int blue = 0;
+
+            for (int i = -k; i <= k; i++)
+            {
+                for (int j = -k; j <= k; j++)
+                {
+                    int this_x = x + i;
+                    int this_y = y + j;
+
+                    if (this_x >= 0 && this_x < img.Width && this_y >= 0 && this_y < img.Height)
+                    {
+                        Color this_pixel = img.GetPixel(this_x, this_y);
+
+                        // colect values for this image chunk of size identical to mask 
+                        mask_red_values[i + k, j + k] = this_pixel.R;
+                        mask_green_values[i + k, j + k] = this_pixel.G;
+                        mask_blue_values[i + k, j + k] = this_pixel.B;
+                    }
+
+                }
+            }
+
+            // apply filters
+            if( this.minStatic.Checked)
+            {
+                int min_red = 0, min_green = 0, min_blue = 0;
+                for (int i = 0; i < mask_size_n; i++){
+                    for (int j = 0; j < mask_size_n; j++) {
+                        if (min_red > mask_red_values[i, j] || (i == 0 && j == 0) ) min_red = mask_red_values[i, j];
+                        if (min_green > mask_green_values[i, j] || (i == 0 && j == 0)) min_green = mask_green_values[i, j];
+                        if (min_blue > mask_blue_values[i, j] || (i == 0 && j == 0)) min_blue = mask_blue_values[i, j];
+                    }
+                }
+                red = min_red;
+                green = min_green;
+                blue = min_blue;
+            }
+            if (this.maxStatic.Checked)
+            {
+                int max_red = 0, max_green = 0, max_blue = 0;
+                for (int i = 0; i < mask_size_n; i++){
+                    for (int j = 0; j < mask_size_n; j++){
+                        if (max_red < mask_red_values[i, j] || (i == 0 && j == 0)) max_red = mask_red_values[i, j];
+                        if (max_green < mask_green_values[i, j] || (i == 0 && j == 0)) max_green = mask_green_values[i, j];
+                        if (max_blue < mask_blue_values[i, j] || (i == 0 && j == 0)) max_blue = mask_blue_values[i, j];
+                    }
+                }
+                red = max_red;
+                green = max_green;
+                blue = max_blue;
+            }
+            if (this.medianStatic.Checked)
+            {
+                int vector_len = (int)Math.Pow(mask_size_n, 2);
+                int[] red_vector = new int[vector_len];
+                int[] blue_vector = new int[vector_len];
+                int[] green_vector = new int[vector_len];
+
+                int vector_i = 0;
+
+                for (int i = 0; i < mask_size_n; i++)
+                {
+                    for (int j = 0; j < mask_size_n; j++)
+                    {
+                        red_vector[vector_i] = mask_red_values[i, j];
+                        green_vector[vector_i] = mask_green_values[i, j];
+                        blue_vector[vector_i] = mask_blue_values[i, j];
+
+                        vector_i++;
+                    }
+                }
+
+                this.quickSort(red_vector, 0, vector_len - 1);
+                this.quickSort(blue_vector, 0, vector_len - 1);
+                this.quickSort(green_vector, 0, vector_len - 1);
+
+                if ( vector_len % 2 == 0) {
+                    int mid_index = vector_len / 2;
+                    red = (red_vector[mid_index] + red_vector[mid_index + 1]) / 2;
+                    green = (green_vector[mid_index] + green_vector[mid_index + 1]) / 2;
+                    blue = (blue_vector[mid_index] + blue_vector[mid_index + 1]) / 2;
+                }
+                else
+                {
+                    decimal mid_index = Math.Floor((decimal)(vector_len / 2));
+                    red = red_vector[Decimal.ToInt32(mid_index)];
+                    green = green_vector[Decimal.ToInt32(mid_index)];
+                    blue = blue_vector[Decimal.ToInt32(mid_index)];
+                }
+            }
+
+            byte[] rgb_result = new byte[3] { Convert.ToByte(this.normalizeIntToByte(red)), Convert.ToByte(this.normalizeIntToByte(green)), Convert.ToByte(this.normalizeIntToByte(blue)) };
 
             return rgb_result;
 
         }
 
-        private void filtrujObrazAction(object sender, EventArgs e)
+        private void filtrStatycznyAction(object sender, EventArgs e)
         {
 
-            
+
             if (this.zdjeciePrzed.Image != null)
             {
 
-                Bitmap zdjeciePoModyfikacji = this.modyfikujZdjecie(this.zdjeciePrzed.Image, this.filtrujObraz);
+                Bitmap zdjeciePoModyfikacji = this.modyfikujZdjecie(this.zdjeciePrzed.Image, this.filtryStatyczne);
 
-                for(int i = 0; i < this.filterTimes.Value - 1; i++)
+                for (int i = 0; i < this.staticLevel.Value - 1; i++)
                 {
-                    zdjeciePoModyfikacji = this.modyfikujZdjecie(zdjeciePoModyfikacji, this.filtrujObraz);
+                    zdjeciePoModyfikacji = this.modyfikujZdjecie(zdjeciePoModyfikacji, this.filtryStatyczne);
                 }
 
                 this.zdjeciePo.Image = zdjeciePoModyfikacji;
@@ -252,5 +603,57 @@ namespace lab6_intensywnosc_histogram
 
 
         }
+
+        private void filtrWyostrzajacyObrazAction(object sender, EventArgs e)
+        {
+
+
+            if (this.zdjeciePrzed.Image != null)
+            {
+                Func<Bitmap, int, int, byte[]> maskaFiltrujaca = this.maskaFiltrujacaFactory(this.sharpenMasks);
+                Bitmap zdjeciePoModyfikacji = this.modyfikujZdjecie(this.zdjeciePrzed.Image, maskaFiltrujaca);
+
+                for (int i = 0; i < this.sharpenLevel.Value - 1; i++)
+                {
+                    zdjeciePoModyfikacji = this.modyfikujZdjecie(zdjeciePoModyfikacji, maskaFiltrujaca);
+                }
+
+                this.zdjeciePo.Image = zdjeciePoModyfikacji;
+                this.zdjeciePo.SizeMode = PictureBoxSizeMode.Zoom;
+
+                this.zdjeciePoHistogram = new Histogram(this.zdjeciePo.Image);
+                this.zdjeciePoHistogram.drawOnChart(this.chart2);
+
+            }
+
+
+        }
+
+        private void filtrUwypuklajaceAction(object sender, EventArgs e)
+        {
+
+
+            if (this.zdjeciePrzed.Image != null)
+            {
+
+                Func<Bitmap, int, int, byte[]> maskaFiltrujaca = this.maskaFiltrujacaFactory(this.embossingMasks);
+                Bitmap zdjeciePoModyfikacji = this.modyfikujZdjecie(this.zdjeciePrzed.Image, maskaFiltrujaca);
+
+                for (int i = 0; i < this.embossingLevel.Value - 1; i++)
+                {
+                    zdjeciePoModyfikacji = this.modyfikujZdjecie(zdjeciePoModyfikacji, maskaFiltrujaca);
+                }
+
+                this.zdjeciePo.Image = zdjeciePoModyfikacji;
+                this.zdjeciePo.SizeMode = PictureBoxSizeMode.Zoom;
+
+                this.zdjeciePoHistogram = new Histogram(this.zdjeciePo.Image);
+                this.zdjeciePoHistogram.drawOnChart(this.chart2);
+
+            }
+
+
+        }
+
     }
 }

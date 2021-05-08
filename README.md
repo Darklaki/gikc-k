@@ -1,5 +1,5 @@
-# Laboratorium VII 02-05-2021
-Skalowanie histogramu oraz filtry rozmywające.
+# Laboratorium VIII 09-05-2021
+Filtry wyostrzające, filtry statyczne.
 
 ## Jak uruchomić
 1. Uruchomić ```lab6_intensywnosc_histogram/bin/debug/lab6_intensywnosc_histogram.exe```
@@ -10,8 +10,9 @@ Aby wybrać zdjęcie do edycji, należy kliknąć w pierwszy kwadrat. Pierwszy h
 Proszę unikać zdjęć o dużych rozdzielczościach gdyż algorytmy obliczające zdjęcie wyjściowe nie zostały oddelegowane do innego wątku - aplikacja po jakimś czasie może się zawiesić.
 
 ## Innowacje
-1. Oprócz filtru uśredniającego i Gaussa dodano też filtr piramidalny.
-2. Możliwość wyboru ile razy przefiltrować zdjęcie.
+1. Do każdego filtra można wybrać stopień. Tzn. ile razy użyć go na zdjęciu.
+2. Przy filtrach statycznych możliwość wyboru rozmiaru maski (tylko wartości nieparzyste).
+3. Dodano również filtry uwypuklające z 4 stron. Nadają zdjęciu wrażenie wypukłości na krawędziach. Implementacja przy pomocy http://www.algorytm.org/przetwarzanie-obrazow/filtrowanie-obrazow.html
 
 ## Zdjęcie
 ![1](assets/1.png)

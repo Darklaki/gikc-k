@@ -18,3 +18,13 @@ C:\Users\Lukasz\Desktop\studia\Grafika i komunikacja czlowiek komputer\lab\lab7\
 C:\Users\Lukasz\Desktop\studia\Grafika i komunikacja czlowiek komputer\lab\lab7\lab6_intensywnosc_histogram\obj\Debug\lab6_intensywnosc_histogram.csproj.CoreCompileInputs.cache
 C:\Users\Lukasz\Desktop\studia\Grafika i komunikacja czlowiek komputer\lab\lab7\lab6_intensywnosc_histogram\obj\Debug\lab6_intensywnosc_histogram.exe
 C:\Users\Lukasz\Desktop\studia\Grafika i komunikacja czlowiek komputer\lab\lab7\lab6_intensywnosc_histogram\obj\Debug\lab6_intensywnosc_histogram.pdb
+C:\Users\Lukasz\Desktop\studia\Grafika i komunikacja czlowiek komputer\lab\lab8\lab6_intensywnosc_histogram\bin\Debug\lab6_intensywnosc_histogram.exe.config
+C:\Users\Lukasz\Desktop\studia\Grafika i komunikacja czlowiek komputer\lab\lab8\lab6_intensywnosc_histogram\bin\Debug\lab6_intensywnosc_histogram.exe
+C:\Users\Lukasz\Desktop\studia\Grafika i komunikacja czlowiek komputer\lab\lab8\lab6_intensywnosc_histogram\bin\Debug\lab6_intensywnosc_histogram.pdb
+C:\Users\Lukasz\Desktop\studia\Grafika i komunikacja czlowiek komputer\lab\lab8\lab6_intensywnosc_histogram\obj\Debug\lab6_intensywnosc_histogram.csprojAssemblyReference.cache
+C:\Users\Lukasz\Desktop\studia\Grafika i komunikacja czlowiek komputer\lab\lab8\lab6_intensywnosc_histogram\obj\Debug\lab6_intensywnosc_histogram.Form1.resources
+C:\Users\Lukasz\Desktop\studia\Grafika i komunikacja czlowiek komputer\lab\lab8\lab6_intensywnosc_histogram\obj\Debug\lab6_intensywnosc_histogram.Properties.Resources.resources
+C:\Users\Lukasz\Desktop\studia\Grafika i komunikacja czlowiek komputer\lab\lab8\lab6_intensywnosc_histogram\obj\Debug\lab6_intensywnosc_histogram.csproj.GenerateResource.cache
+C:\Users\Lukasz\Desktop\studia\Grafika i komunikacja czlowiek komputer\lab\lab8\lab6_intensywnosc_histogram\obj\Debug\lab6_intensywnosc_histogram.csproj.CoreCompileInputs.cache
+C:\Users\Lukasz\Desktop\studia\Grafika i komunikacja czlowiek komputer\lab\lab8\lab6_intensywnosc_histogram\obj\Debug\lab6_intensywnosc_histogram.exe
+C:\Users\Lukasz\Desktop\studia\Grafika i komunikacja czlowiek komputer\lab\lab8\lab6_intensywnosc_histogram\obj\Debug\lab6_intensywnosc_histogram.pdb
